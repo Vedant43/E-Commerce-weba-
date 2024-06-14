@@ -1,37 +1,21 @@
 import { useEffect, useState } from "react"
 import { Product } from "./Product"
-import { FaArrowLeft } from "react-icons/fa";
-import { FaArrowRight } from "react-icons/fa";
 import axios from 'axios'
+import { useDispatch, useSelector } from "react-redux";
+import { setProduct } from "../redux/features/productSlice";
+import { RootState } from "../redux/store";
 
-interface Product {
-    name: string;
-    photo: string;
-    price: number;
-    quantity: number;
-    id: string;
-}
+export const FilteredProduct = () => {
 
-interface filteredProductProps {
-    // productList : Product[];
-    productList : (product:Product[])=>void;
-    maxPrice:number;
-    sort:string;
-    category:string;
-}
-
-export const FilteredProduct = ({productList,maxPrice,sort,category}:filteredProductProps) => {
-
-    const [products,setProducts] = useState<Product[]>([{
-        name:'',
-        photo:'',
-        price:0,
-        quantity:0,
-        id:'',
-    }])
     const [page,setPage] = useState(1)
-    // console.log("sort"+ sort)
-    console.log(maxPrice)
+
+    const dispatch = useDispatch()
+    const products = useSelector((state:RootState) => state.products)
+
+    const sort = useSelector((state:RootState)=>state.sort)
+    const maxPrice = useSelector((state:RootState)=>state.maxPrice)
+    const category = useSelector((state:RootState)=>state.category)
+
     const totalPage = Array(Math.ceil(products.length/6)).length
 
     useEffect(()=>{
@@ -39,7 +23,7 @@ export const FilteredProduct = ({productList,maxPrice,sort,category}:filteredPro
             const response = await axios.get(`http://localhost:3000/api/v1/product/all-products`)
 
             let filteredProducts = response.data.products
-
+            
             if(sort==="asc"){
                 filteredProducts = filteredProducts.sort( (a:any,b:any) => a.price-b.price)
             }
@@ -52,15 +36,13 @@ export const FilteredProduct = ({productList,maxPrice,sort,category}:filteredPro
                   (product:any) => product.price <= maxPrice
                 );
             }
-            console.log("categories " + category)
             if(category) {
                 filteredProducts = filteredProducts.filter(
                     (product:any) => product.category === category
                 )
             }
 
-            setProducts(filteredProducts)
-            productList(filteredProducts) // sending to parent
+            dispatch(setProduct(filteredProducts))
 
             return filteredProducts
         }
@@ -76,8 +58,8 @@ export const FilteredProduct = ({productList,maxPrice,sort,category}:filteredPro
                 products.length>0 && 
                 <div className="w-full grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 justify-items-center justify-center gap-y-10 gap-x-6 mt-8 mb-5">
                     {products.slice(page*6 - 6,page*6).map((product)=>{
-                        return <div className="">
-                        <Product name={product.name} price={product.price.toString()} photo={product.photo} category={product.category}/>
+                        return <div key={product.id} className="">
+                        <Product name={product.name} price={product.price} photo={product.photo} category={product.category}/>
                     </div>
                     })}
                 </div>
@@ -98,9 +80,7 @@ export const FilteredProduct = ({productList,maxPrice,sort,category}:filteredPro
                     Prev
                 </button>
 
-                    {/* {[...Array(Math.ceil(products.length/6))].map((_,i)=>{
-                        return <span>{} </span>
-                    })} */}
+                    
                 <span className="font-normal font-custom text-lg text-slate-600">{page} of {Array(Math.ceil(products.length/6)).length}</span>
 
                 <button onClick={

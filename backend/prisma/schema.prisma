@@ -38,7 +38,12 @@ model Product {
   timestamp DateTime
 }
 
+model shippingInfo {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  
+}
+
 model Order {
-    id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
 }
